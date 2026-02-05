@@ -1,0 +1,144 @@
+
+<!-- Navbar -->
+<nav class="sticky top-0 z-50 bg-brand-light/95 dark:bg-brand-dark/95 backdrop-blur-sm border-b border-brand-borderLight dark:border-brand-borderDark transition-colors duration-300">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Left: Logo & Nav -->
+      <div class="flex items-center gap-8">
+        <a routerLink="/" class="flex items-center gap-2 group">
+          <div class="w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center">
+            <span class="material-icons text-lg">emoji_nature</span>
+          </div>
+          <span class="font-bold text-xl text-brand-textLight dark:text-brand-textDark tracking-tight">ClawHub</span>
+        </a>
+        
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-brand-mutedLight dark:text-brand-mutedDark">
+          <a routerLink="/skills" routerLinkActive="text-brand-textLight dark:text-brand-textDark" class="hover:text-brand-textLight dark:hover:text-brand-textDark transition-colors">技能</a>
+          <a routerLink="/upload" routerLinkActive="text-brand-textLight dark:text-brand-textDark" class="hover:text-brand-textLight dark:hover:text-brand-textDark transition-colors">上传</a>
+          <a routerLink="/import" routerLinkActive="text-brand-textLight dark:text-brand-textDark" class="hover:text-brand-textLight dark:hover:text-brand-textDark transition-colors">导入</a>
+          <a routerLink="/skills" class="hover:text-brand-textLight dark:hover:text-brand-textDark transition-colors">搜索</a>
+        </div>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-4">
+        
+        <!-- Theme Toggle -->
+        <div class="flex items-center bg-white dark:bg-brand-cardDark border border-brand-borderLight dark:border-brand-borderDark rounded-full p-1 shadow-sm">
+          <button 
+            (click)="setTheme('system', $event)" 
+            class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+            [class.bg-brand-primary]="themeService.theme() === 'system'"
+            [class.text-white]="themeService.theme() === 'system'"
+            [class.text-gray-400]="themeService.theme() !== 'system'"
+            [class.hover:text-gray-600]="themeService.theme() !== 'system'"
+            [class.dark:hover:text-gray-200]="themeService.theme() !== 'system'"
+            title="系统主题"
+          >
+             <span class="material-icons text-sm">monitor</span>
+          </button>
+          
+          <button 
+            (click)="setTheme('light', $event)" 
+            class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+            [class.bg-brand-primary]="themeService.theme() === 'light'"
+            [class.text-white]="themeService.theme() === 'light'"
+            [class.text-gray-400]="themeService.theme() !== 'light'"
+            [class.hover:text-gray-600]="themeService.theme() !== 'light'"
+            [class.dark:hover:text-gray-200]="themeService.theme() !== 'light'"
+            title="浅色主题"
+          >
+             <span class="material-icons text-sm">light_mode</span>
+          </button>
+
+          <button 
+            (click)="setTheme('dark', $event)" 
+            class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+            [class.bg-brand-primary]="themeService.theme() === 'dark'"
+            [class.text-white]="themeService.theme() === 'dark'"
+            [class.text-gray-400]="themeService.theme() !== 'dark'"
+            [class.hover:text-gray-600]="themeService.theme() !== 'dark'"
+            [class.dark:hover:text-gray-200]="themeService.theme() !== 'dark'"
+            title="深色主题"
+          >
+             <span class="material-icons-outlined text-sm">dark_mode</span>
+          </button>
+        </div>
+
+        <!-- User Profile / Login -->
+        <div class="relative">
+          @if (authService.currentUser()) {
+             <button (click)="toggleDropdown()" class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white dark:bg-brand-cardDark border border-brand-borderLight dark:border-brand-borderDark rounded-full hover:shadow-md transition-shadow">
+               <img [src]="authService.currentUser()?.avatarUrl" class="w-6 h-6 rounded-full" alt="Avatar">
+               <span class="text-sm font-medium text-brand-textLight dark:text-brand-textDark">{{ authService.currentUser()?.username }}</span>
+               <span class="material-icons text-sm text-gray-400">arrow_drop_down</span>
+             </button>
+             
+             <!-- Dropdown -->
+             @if (isDropdownOpen()) {
+               <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-brand-cardDark rounded-xl shadow-lg border border-brand-borderLight dark:border-brand-borderDark py-1 z-50">
+                 <button (click)="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800">
+                   退出
+                 </button>
+               </div>
+             }
+
+          } @else {
+             <button (click)="openLogin()" class="text-sm font-medium text-brand-mutedLight dark:text-brand-mutedDark hover:text-brand-textLight dark:hover:text-brand-textDark transition-colors">
+               登陆
+             </button>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+</nav>
+
+<router-outlet></router-outlet>
+
+<!-- Login Modal -->
+@if (isLoginModalOpen()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" (click)="closeLogin()">
+    <div class="bg-white dark:bg-[#1C1614] border border-brand-borderLight dark:border-brand-borderDark rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+      <div class="p-6 border-b border-brand-borderLight dark:border-brand-borderDark flex justify-between items-center">
+        <h3 class="text-xl font-bold text-brand-textLight dark:text-brand-textDark">登录</h3>
+        <button (click)="closeLogin()" class="text-brand-mutedLight hover:text-brand-textLight dark:hover:text-brand-textDark">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="p-6">
+        <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="space-y-4">
+          @if (authService.error()) {
+            <div class="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+              {{ authService.error() }}
+            </div>
+          }
+          
+          <div>
+            <label class="block text-sm font-medium text-brand-textLight dark:text-brand-textDark mb-1">用户名</label>
+            <input formControlName="username" type="text" class="w-full px-4 py-2 rounded-lg border border-brand-borderLight dark:border-brand-borderDark bg-gray-50 dark:bg-[#2A2422] text-brand-textLight dark:text-brand-textDark focus:ring-2 focus:ring-brand-primary outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-brand-textLight dark:text-brand-textDark mb-1">密码</label>
+            <input formControlName="password" type="password" class="w-full px-4 py-2 rounded-lg border border-brand-borderLight dark:border-brand-borderDark bg-gray-50 dark:bg-[#2A2422] text-brand-textLight dark:text-brand-textDark focus:ring-2 focus:ring-brand-primary outline-none">
+            <p class="text-xs text-brand-mutedLight mt-1">提示: admin / 123456</p>
+          </div>
+          
+          <div class="pt-2">
+            <button type="submit" class="w-full py-2.5 bg-brand-primary hover:bg-brand-primaryHover text-white font-medium rounded-lg transition-colors shadow-lg shadow-brand-primary/20">
+              进入仪表板
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<footer class="border-t border-brand-borderLight dark:border-brand-borderDark mt-20 py-8 text-center text-sm text-brand-mutedLight dark:text-brand-mutedDark">
+  <p>ClawHub · 一个 OpenClaw 项目 · 开源 (MIT) · Peter Steinberger。</p>
+</footer>
