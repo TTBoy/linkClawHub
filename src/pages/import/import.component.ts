@@ -173,7 +173,7 @@ export class ImportComponent {
     ).subscribe(skills => {
       if (skills) {
         if (skills.length === 0) {
-          this.errorMessage.set('在该仓库中未检测到技能 (未找到 SKILL.md 文件)。');
+          this.errorMessage.set('未检测到技能。请检查 URL 并重试。');
           this.importState.set('error');
         } else {
           this.detectedSkills.set(skills);
