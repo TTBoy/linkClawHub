@@ -76,6 +76,9 @@
               @if(importState() === 'configure') {
                  <p class="text-green-600 dark:text-green-400 font-medium animate-fadeIn">检测到！准备导入。</p>
               }
+              @if (importState() === 'error') {
+                <p class="text-red-500 font-medium animate-fadeIn">{{ errorMessage() }}</p>
+              }
             </div>
           </div>
 
