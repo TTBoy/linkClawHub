@@ -12,6 +12,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "index": "index.html",
             "outputPath": {
               "base": "./dist",
               "browser": "."
@@ -34,7 +35,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 3000
+            "port": 4200
           },
           "configurations": {
             "production": {

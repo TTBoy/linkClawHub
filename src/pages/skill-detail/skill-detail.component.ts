@@ -41,7 +41,7 @@ type Tab = 'files' | 'compare' | 'versions';
 
               <div class="mt-4 flex items-center gap-2 text-sm text-brand-mutedLight dark:text-brand-mutedDark">
                 <span>经过</span>
-                <span class="font-medium text-brand-textLight dark:text-brand-textDark hover:text-brand-primary cursor-pointer">@ {{ skill()?.author || 'Asleep123' }}</span>
+                <span class="font-medium text-brand-textLight dark:text-brand-textDark hover:text-brand-primary cursor-pointer">&#64; {{ skill()?.author || 'Asleep123' }}</span>
               </div>
 
               <!-- Tags -->
