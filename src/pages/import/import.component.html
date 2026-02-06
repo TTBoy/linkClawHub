@@ -1,0 +1,195 @@
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <!-- Login Check -->
+  @if (!authService.currentUser()) {
+    <h1 class="text-3xl font-bold text-brand-textLight dark:text-brand-textDark mb-2">从 GitHub 导入</h1>
+    <p class="text-brand-mutedLight dark:text-brand-mutedDark mb-8">连接公共存储库以发布您的技能。</p>
+    
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6 text-center">
+      <p class="text-amber-800 dark:text-amber-200 mb-0">您必须登录才能导入技能。</p>
+    </div>
+  } @else {
+    <!-- Main Content -->
+    <div class="relative">
+       <!-- Header Section -->
+       <div class="mb-12">
+         <div class="text-brand-primary font-bold tracking-widest text-sm uppercase mb-2">GITHUB 导入</div>
+         
+         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+           <div>
+             <h1 class="text-4xl md:text-5xl font-bold text-brand-textLight dark:text-brand-textDark mb-4">从 GitHub 导入</h1>
+             <p class="text-xl text-brand-mutedLight dark:text-brand-mutedDark font-light">
+               仅限公共仓库。自动检测 SKILL.md。
+             </p>
+           </div>
+           
+           <div class="bg-brand-primary/10 text-brand-primary border border-brand-primary/20 px-6 py-4 rounded-3xl text-center shadow-sm">
+             <div class="text-sm font-bold opacity-80 mb-1">仅限公共</div>
+             <div class="font-bold tracking-wide">承诺固定</div>
+           </div>
+         </div>
+       </div>
+
+      <!-- Main Interaction Card -->
+      <div class="bg-brand-cardLight dark:bg-brand-cardDark rounded-[2rem] shadow-xl border border-brand-borderLight dark:border-brand-borderDark p-8 md:p-12 relative overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl"></div>
+        <div class="relative z-10 space-y-8">
+          
+          <!-- Step 1: URL Input -->
+          <div>
+            <div class="flex justify-between items-end mb-2">
+              <label class="font-bold text-lg text-brand-textLight dark:text-brand-textDark">GitHub 网址</label>
+              @if (importState() !== 'idle' && importState() !== 'detecting') {
+                <button (click)="reset()" class="text-sm text-brand-mutedLight hover:text-brand-primary">重新开始</button>
+              } @else {
+                <span class="text-sm text-brand-mutedLight dark:text-brand-mutedDark">回购、树路径或斑点</span>
+              }
+            </div>
+            
+            <input 
+              [formControl]="urlControl"
+              type="text" 
+              placeholder="https://github.com/example" 
+              class="w-full px-6 py-4 rounded-xl border border-brand-borderLight dark:border-brand-borderDark bg-gray-50 dark:bg-[#1E1E1E] text-brand-textLight dark:text-brand-textDark text-lg focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-all"
+              [readOnly]="importState() !== 'idle'"
+            >
+            @if (urlControl.dirty && urlControl.invalid) {
+              <p class="text-red-500 text-sm mt-2 ml-2">请输入有效的 GitHub URL</p>
+            }
+
+            <div class="mt-6 flex items-center gap-4">
+              <button 
+                (click)="onDetect()"
+                [disabled]="urlControl.invalid || importState() !== 'idle'"
+                class="px-8 py-3 bg-brand-primary hover:bg-brand-primaryHover disabled:opacity-50 disabled:cursor-not-allowed text-white text-lg font-medium rounded-full transition-colors shadow-lg shadow-brand-primary/30 flex items-center gap-2"
+              >
+                @if (importState() === 'detecting') {
+                  <span class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                  检测中...
+                } @else {
+                  检测
+                }
+              </button>
+              @if(importState() === 'selectSkill') {
+                 <p class="text-green-600 dark:text-green-400 font-medium animate-fadeIn">找到了 {{ detectedSkills().length }} 项技能。选一个。</p>
+              }
+              @if(importState() === 'configure') {
+                 <p class="text-green-600 dark:text-green-400 font-medium animate-fadeIn">检测到！准备导入。</p>
+              }
+            </div>
+          </div>
+
+          <!-- Step 2: Select Skill (if multiple found) -->
+          @if (importState() === 'selectSkill' || importState() === 'configure' || importState() === 'importing') {
+            <div class="animate-fadeIn">
+              <h3 class="font-bold text-lg text-brand-textLight dark:text-brand-textDark mb-4">选择一项技能</h3>
+              <div [formGroup]="importForm" class="space-y-3 max-h-60 overflow-y-auto pr-4">
+                 @for(skill of detectedSkills(); track skill.path) {
+                    <label class="flex items-center p-4 rounded-lg border border-brand-borderLight dark:border-brand-borderDark hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors">
+                      <input 
+                        type="radio" 
+                        name="selectedSkillPath" 
+                        formControlName="selectedSkillPath"
+                        [value]="skill.path"
+                        (change)="selectSkill(skill.path)"
+                        class="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300"
+                      >
+                      <span class="ml-3 text-sm text-brand-textLight dark:text-brand-textDark font-mono">
+                        {{ skill.path }}
+                        <span class="text-brand-mutedLight dark:text-brand-mutedDark ml-2">{{ skill.path.split('/').pop() }}</span>
+                      </span>
+                    </label>
+                 }
+              </div>
+            </div>
+          }
+
+          <!-- Step 3: Configure and file list -->
+          @if (importState() === 'configure' || importState() === 'importing') {
+            <div class="animate-fadeIn space-y-8">
+              
+              <!-- Details Form -->
+              <div [formGroup]="importForm">
+                <h3 class="font-bold text-lg text-brand-textLight dark:text-brand-textDark mb-4">详情</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Left Side -->
+                  <div class="space-y-4">
+                     <div>
+                       <label class="block text-sm font-medium mb-1">别名</label>
+                       <input formControlName="slug" type="text" class="w-full px-4 py-2 rounded-lg border bg-white dark:bg-[#1E1E1E] border-brand-borderLight dark:border-brand-borderDark">
+                     </div>
+                     <div>
+                       <label class="block text-sm font-medium mb-1">显示名称</label>
+                       <input formControlName="name" type="text" class="w-full px-4 py-2 rounded-lg border bg-white dark:bg-[#1E1E1E] border-brand-borderLight dark:border-brand-borderDark">
+                     </div>
+                     <div class="grid grid-cols-2 gap-4">
+                       <div>
+                         <label class="block text-sm font-medium mb-1">版本</label>
+                         <input formControlName="version" type="text" class="w-full px-4 py-2 rounded-lg border bg-white dark:bg-[#1E1E1E] border-brand-borderLight dark:border-brand-borderDark">
+                       </div>
+                       <div>
+                         <label class="block text-sm font-medium mb-1">标签</label>
+                         <input formControlName="tags" type="text" class="w-full px-4 py-2 rounded-lg border bg-white dark:bg-[#1E1E1E] border-brand-borderLight dark:border-brand-borderDark">
+                       </div>
+                     </div>
+                  </div>
+                  <!-- Right Side -->
+                  <div class="bg-brand-light dark:bg-brand-dark/50 p-4 rounded-xl border border-brand-borderLight dark:border-brand-borderDark flex flex-col justify-center">
+                    <p class="text-xs text-brand-mutedLight dark:text-brand-mutedDark font-bold uppercase">提交固定</p>
+                    <p class="text-sm font-medium text-brand-textLight dark:text-brand-textDark mt-1">人类技能/@a5bcdd7</p>
+                    <p class="text-sm text-brand-textLight dark:text-brand-textDark">{{ importForm.get('name')?.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File List -->
+              <div>
+                <div class="flex justify-between items-center mb-4">
+                   <div>
+                      <h3 class="font-bold text-lg text-brand-textLight dark:text-brand-textDark">文件</h3>
+                      <p class="text-sm text-brand-mutedLight dark:text-brand-mutedDark">
+                        已选: {{ selectionSummary().count }}/{{ selectionSummary().totalCount }} &bull; {{ selectionSummary().size }}
+                      </p>
+                   </div>
+                   <div class="flex items-center gap-2">
+                      <button (click)="selectExample()" class="text-sm font-medium px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">选择引用</button>
+                      <button (click)="selectAllFiles()" class="text-sm font-medium px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">全部选择</button>
+                      <button (click)="clearSelection()" class="text-sm font-medium px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-red-500">清除</button>
+                   </div>
+                </div>
+                <div class="border border-brand-borderLight dark:border-brand-borderDark rounded-xl max-h-64 overflow-y-auto">
+                   @for(file of detectedFiles(); track file.name; let i = $index) {
+                      <div class="flex items-center justify-between p-3 border-b border-brand-borderLight dark:border-brand-borderDark last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                         <div class="flex items-center">
+                           <input type="checkbox" [checked]="file.selected" (change)="toggleFileSelection(i)" class="h-4 w-4 rounded text-brand-primary focus:ring-brand-primary border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                           <span class="ml-3 text-sm text-brand-textLight dark:text-brand-textDark font-mono">{{ file.name }}</span>
+                         </div>
+                         <span class="text-xs font-mono text-brand-mutedLight dark:text-brand-mutedDark">{{ formatBytes(file.size) }}</span>
+                      </div>
+                   }
+                </div>
+              </div>
+
+              <!-- Final Action -->
+              <div class="pt-4">
+                 <button 
+                  (click)="onImportAndPublish()" 
+                  [disabled]="importState() === 'importing' || importForm.invalid || selectionSummary().count === 0"
+                  class="px-8 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-lg font-medium rounded-full transition-colors shadow-lg shadow-red-500/30 flex items-center gap-2"
+                >
+                  @if (importState() === 'importing') {
+                    <span class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                    正在导入...
+                  } @else {
+                    导入+发布
+                  }
+                 </button>
+              </div>
+
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
